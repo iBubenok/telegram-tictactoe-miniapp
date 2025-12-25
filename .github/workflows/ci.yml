@@ -8,9 +8,6 @@ on:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: repo
     steps:
       - name: Checkout
         uses: actions/checkout@v4
