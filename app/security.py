@@ -103,9 +103,7 @@ def validate_init_data(init_data: str, bot_token: str, max_age_seconds: int) -> 
             continue
         raw_pairs.append(segment)
     if raw_pairs:
-        raw_data_check = "\n".join(
-            sorted(raw_pairs, key=lambda s: s.split("=", 1)[0])
-        )
+        raw_data_check = "\n".join(sorted(raw_pairs, key=lambda s: s.split("=", 1)[0]))
         add_candidate(secret_key_webapp, raw_data_check)
         add_candidate(hashed_token, raw_data_check)
 
