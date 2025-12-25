@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+      APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+      TRAEFIK_NETWORK: ${{ secrets.TRAEFIK_NETWORK || 'safeworkhub-network' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare bundle
+        run: tar -czf bundle.tar.gz -C repo .
+
+      - name: Upload bundle
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          password: ${{ env.SSH_PASSWORD }}
+          port: ${{ env.SSH_PORT }}
+          source: "bundle.tar.gz"
+          target: "/tmp"
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          password: ${{ env.SSH_PASSWORD }}
+          port: ${{ env.SSH_PORT }}
+          envs: APP_DOMAIN,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,TRAEFIK_NETWORK
+          script: |
+            set -euo pipefail
+            PROJECT_DIR=/opt/ttt-miniapp
+            if ! docker network inspect "${TRAEFIK_NETWORK}" >/dev/null 2>&1; then
+              echo "Сеть ${TRAEFIK_NETWORK} не найдена. Создайте её или обновите переменную TRAEFIK_NETWORK."
+              exit 1
+            fi
+            mkdir -p "${PROJECT_DIR}"
+            tar -xzf /tmp/bundle.tar.gz -C "${PROJECT_DIR}"
+            rm -f /tmp/bundle.tar.gz
+            cat > "${PROJECT_DIR}/.env" <<EOF
+            TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+            TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+            WEB_APP_URL=https://${APP_DOMAIN}
+            APP_DOMAIN=${APP_DOMAIN}
+            APP_PORT=8000
+            INIT_DATA_TTL_SECONDS=86400
+            TRAEFIK_NETWORK=${TRAEFIK_NETWORK}
+            COMPOSE_PROJECT_NAME=tictactoe-miniapp
+            EOF
+            cd "${PROJECT_DIR}"
+            docker compose down --remove-orphans || true
+            docker compose up -d --build --remove-orphans
+
+      - name: Set webhook
+        run: |
+          sleep 5
+          curl -sSf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            -d "url=https://${APP_DOMAIN}/telegram/webhook" \
+            -d "allowed_updates=[\"message\",\"callback_query\",\"my_chat_member\"]"
+
+      - name: Check health
+        run: |
+          sleep 5
+          curl -f "https://${{ env.APP_DOMAIN }}/health"

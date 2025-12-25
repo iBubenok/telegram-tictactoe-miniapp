@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Крестики-нолики</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="background"></div>
+  <main class="app">
+    <header class="hero">
+      <div class="hero__text">
+        <p class="eyebrow">Небольшой тайм-аут</p>
+        <h1>Крестики-нолики</h1>
+        <p class="subtitle">Сыграйте пару раундов, чтобы получить промокод со скидкой.</p>
+      </div>
+      <div class="hero__pill">
+        <span class="dot"></span>
+        <span>Сыграйте и заберите бонус</span>
+      </div>
+    </header>
+
+    <section class="notice" id="telegram-warning" hidden>
+      <div class="notice__title">Откройте игру в Telegram</div>
+      <p class="notice__text">Мини-приложение работает только внутри Telegram. Вернитесь в чат и нажмите кнопку «Играть».</p>
+    </section>
+
+    <section class="panel" id="game-panel">
+      <div class="panel__header">
+        <div>
+          <p class="panel__label">Режим</p>
+          <div class="mode-toggle" id="mode-toggle">
+            <button data-mode="easy" class="mode-toggle__btn is-active">Лёгкий</button>
+            <button data-mode="smart" class="mode-toggle__btn">Умный</button>
+          </div>
+        </div>
+        <div class="status" id="status">Ваш ход</div>
+      </div>
+
+      <div class="board" id="board">
+        <button class="cell" data-index="0"></button>
+        <button class="cell" data-index="1"></button>
+        <button class="cell" data-index="2"></button>
+        <button class="cell" data-index="3"></button>
+        <button class="cell" data-index="4"></button>
+        <button class="cell" data-index="5"></button>
+        <button class="cell" data-index="6"></button>
+        <button class="cell" data-index="7"></button>
+        <button class="cell" data-index="8"></button>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="restart-btn">Сыграть снова</button>
+      </div>
+    </section>
+
+    <section class="panel panel--muted" id="result-panel" hidden>
+      <div class="result" id="result-message"></div>
+      <div class="promo" id="promo-card" hidden>
+        <div class="promo__label">Ваш промокод</div>
+        <div class="promo__code" id="promo-code">00000</div>
+        <button class="ghost" id="copy-btn">Скопировать</button>
+        <div class="promo__hint" id="copy-hint" hidden>Промокод скопирован</div>
+      </div>
+      <div class="actions actions--inline">
+        <button class="primary" id="again-btn">Сыграть ещё раз</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
