@@ -22,7 +22,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare bundle
-        run: git archive --format=tar.gz -o bundle.tar.gz HEAD:repo
+        run: |
+          if [ -d repo ]; then
+            git archive --format=tar.gz -o bundle.tar.gz HEAD:repo
+          else
+            git archive --format=tar.gz -o bundle.tar.gz HEAD
+          fi
 
       - name: Upload bundle
         uses: appleboy/scp-action@v0.1.7
